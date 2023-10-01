@@ -86,6 +86,63 @@ def create_product():
     categories = cur.fetchall()
     return render_template('products/create.html', categories=categories)
 
+
+@app.route('/products/update/<int:product_id>/', methods=['GET', 'POST'])
+def update_product(product_id):
+    cur = get_db().cursor()
+
+    if request.method == 'POST':
+        title = request.form.get('title')
+        description = request.form.get('description')
+        price = request.form.get('price')
+        category_id = request.form.get('category')
+        image = request.files.get('image')
+
+        update_values = [title, description, price, category_id]
+        update_query = """
+            UPDATE products
+            SET title=?, description=?, price=?, category_id=?, updated=DATETIME('now')
+        """
+
+        # Si se ha proporcionado una nueva imagen, la procesamos
+        if image and image.filename:
+            if not allowed_file(image.filename):
+                flash("Tipo de archivo no permitido", "danger")
+                return redirect(request.url)
+
+            filename = secure_filename(image.filename)
+            image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+            # Agregamos la imagen al query de actualización
+            update_query += ", photo=? "
+            update_values.append(filename)
+
+        update_query += " WHERE id=?"
+        update_values.append(product_id)
+
+        try:
+            cur.execute(update_query, tuple(update_values))
+            get_db().commit()
+
+            flash("Producto actualizado con éxito", "success")
+            return redirect(url_for('mostrar_productos'))
+
+        except Exception as e:
+            flash(f"Error al actualizar el producto: {e}", "danger")
+            return redirect(url_for('update_product', product_id=product_id))
+
+    # Obtener información del producto para mostrarla en el formulario
+    cur.execute("SELECT * FROM products WHERE id=?", (product_id,))
+    product = cur.fetchone()
+
+    # Para mostrar las categorías disponibles:
+    cur.execute("SELECT * FROM categories")
+    categories = cur.fetchall()
+    
+    return render_template('products/update.html', product=product, categories=categories)
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
 
