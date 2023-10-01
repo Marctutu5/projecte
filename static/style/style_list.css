@@ -97,3 +97,37 @@ button, a {
 button:hover, a:hover {
     background-color: #0056b3;
 }
+
+/* Estilo para el menú de filtrado */
+.filter-menu {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.filter-menu select,
+.filter-menu input[type="submit"] {
+    margin-right: 10px;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1em;
+    transition: border-color 0.3s ease;
+}
+
+.filter-menu select:focus,
+.filter-menu input[type="submit"]:focus {
+    border-color: #007BFF;
+}
+
+.filter-menu input[type="submit"] {
+    background-color: #007BFF;
+    color: #FFFFFF;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+}
+
+.filter-menu input[type="submit"]:hover {
+    background-color: #0056b3;
+}

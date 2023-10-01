@@ -26,12 +26,24 @@ def close_connection(exception):
     if db is not None:
         db.close()
 
-@app.route('/products/list/')
+@app.route('/products/list/', methods=['GET', 'POST'])
 def mostrar_productos():
     cur = get_db().cursor()
-    cur.execute("SELECT * FROM products")
+    
+    category_slug = request.args.get('category') if request.method == 'GET' else None
+
+    if category_slug:
+        cur.execute("SELECT * FROM products JOIN categories ON products.category_id = categories.id WHERE categories.slug = ?", (category_slug,))
+    else:
+        cur.execute("SELECT * FROM products")
+        
     productos = cur.fetchall()
-    return render_template("/products/list.html", productos=productos)
+    
+    cur.execute("SELECT * FROM categories")
+    categories = cur.fetchall()
+
+    return render_template("/products/list.html", productos=productos, categories=categories)
+
 
 @app.route('/products/create/', methods=['GET', 'POST'])
 def create_product():

@@ -8,6 +8,19 @@
 <div class="container">
     <h1>Lista de Productos</h1>
 
+    <div class="filter-menu">
+        <form action="/products/list/" method="GET">
+            <select name="category">
+                <option value="">Todos</option>
+                {% for category in categories %}
+                    <option value="{{ category[2] }}" {% if category[2] == request.args.get('category') %} selected {% endif %}>{{ category[1] }}</option>
+                {% endfor %}
+            </select>
+            <input type="submit" value="Filtrar">
+        </form>
+    </div>
+  
+
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
         <ul>
