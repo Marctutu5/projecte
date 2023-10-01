@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" type="text/css" href="/static/style/style_list.css">
+<head>
+    <title>Productos</title>
+</head>
+<body>
+<div class="container">
+    <h1>Lista de Productos</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <ul>
+        {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+    {% endwith %}
+
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Imagen</th>
+            <th>Precio</th>
+        </tr>
+        {% for producto in productos %}
+        <tr>
+            <td>{{ producto[0] }}</td>
+            <td>{{ producto[1] }}</td>
+            <td>{{ producto[2] }}</td>
+            {% if producto[3] %}
+                <td><img src="{{ url_for('static', filename='images/' + producto[3]) }}" alt="Imagen de {{ producto[1] }}" width="100"></td>
+
+            {% else %}
+                <td>No hay imagen</td>
+            {% endif %}
+            <td>{{ producto[4] }}</td>
+        </tr>
+        {% endfor %}
+
+    </table>
+
+    <a href="/products/create/" style="padding: 10px 20px; background-color: #007BFF; color: #FFFFFF; text-decoration: none; border-radius: 4px;">Crear</a>
+</div>
+</body>
+</html>
