@@ -1,62 +1,85 @@
 <!DOCTYPE html>
 <html>
-<link rel="stylesheet" type="text/css" href="/static/style/style_list.css">
+
 <head>
+    <!-- Títol pàg -->
     <title>Productos</title>
+    <!-- Estils CSS -->
+    <link rel="stylesheet" type="text/css" href="/static/style/style_list.css">
 </head>
+
 <body>
-<div class="container">
-    <h1>Lista de Productos</h1>
+    <!-- Contenedor principal del llistat de productes -->
+    <div class="container">
+        <h1>Lista de Productos</h1>
 
-    <div class="filter-menu">
-        <form action="/products/list/" method="GET">
-            <select name="category">
-                <option value="">Todos</option>
-                {% for category in categories %}
+        <!-- Menú per filtrar els productes per categoria -->
+        <div class="filter-menu">
+            <form action="/products/list/" method="GET">
+                <!-- Selector de categories -->
+                <select name="category">
+                    <option value="">Todos</option>
+                    <!-- Itera a través de totes les categories disponibles -->
+                    {% for category in categories %}
                     <option value="{{ category[2] }}" {% if category[2] == request.args.get('category') %} selected {% endif %}>{{ category[1] }}</option>
-                {% endfor %}
-            </select>
-            <input type="submit" value="Filtrar">
-        </form>
-    </div>
-  
+                    {% endfor %}
+                </select>
+                <!-- Botó per aplicar el filtre de categoria -->
+                <input type="submit" value="Filtrar">
+            </form>
+        </div>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
+        <!-- Mostra els missatges si n'hi ha -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
         <ul>
-        {% for category, message in messages %}
+            {% for category, message in messages %}
             <li class="{{ category }}">{{ message }}</li>
-        {% endfor %}
+            {% endfor %}
         </ul>
-    {% endif %}
-    {% endwith %}
+        {% endif %}
+        {% endwith %}
 
-    <table border="1">
-        <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Descripción</th>
-            <th>Imagen</th>
-            <th>Precio</th>
-            <th>Acciones</th> <!-- Agregar esta columna para el botón "Actualizar" -->
-        </tr>
-        {% for producto in productos %}
-        <tr>
-            <td>{{ producto[0] }}</td>
-            <td>{{ producto[1] }}</td>
-            <td>{{ producto[2] }}</td>
-            {% if producto[3] %}
-                <td><img src="{{ url_for('static', filename='images/' + producto[3]) }}" alt="Imagen de {{ producto[1] }}" width="100"></td>
-            {% else %}
-                <td>No hay imagen</td>
-            {% endif %}
-            <td>{{ producto[4] }}</td>
-            <td><a href="{{ url_for('update_product', product_id=producto[0]) }}">Actualizar</a></td> <!-- Mueve el botón "Actualizar" aquí -->
-        </tr>
-        {% endfor %}
-    </table>    
+        <!-- Taula que mostra la llista de productes -->
+        <table>
+            <thead>
+                <!-- Capçaleres de la taula -->
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Imagen</th>
+                    <th>Precio</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Itera a través de tots els productes i mostra'ls a la taula -->
+                {% for producto in productos %}
+                <tr>
+                    <td>{{ producto[0] }}</td>
+                    <td>{{ producto[1] }}</td>
+                    <td>{{ producto[2] }}</td>
+                    <!-- Mostra la imatge del producte si està disponible -->
+                    {% if producto[3] %}
+                    <td><img src="{{ url_for('static', filename='images/' + producto[3]) }}" alt="Imagen de {{ producto[1] }}" width="100"></td>
+                    {% else %}
+                    <td>No hay imagen</td>
+                    {% endif %}
+                    <td>{{ producto[4] }}</td>
+                    <!-- Enllaços per actualitzar o eliminar el producte -->
+                    <td>
+                        <a href="{{ url_for('update_product', product_id=producto[0]) }}" >Actualizar</a> |
+                        <a href="{{ url_for('delete_product', product_id=producto[0]) }}" onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?');">Eliminar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
-    <a href="/products/create/" style="padding: 10px 20px; background-color: #007BFF; color: #FFFFFF; text-decoration: none; border-radius: 4px;">Crear</a>
-</div>
+        <!-- Enllaç per crear un nou producte -->
+        <a href="/products/create/" class="btn-create">Crear</a>
+    </div>
 </body>
+
 </html>
