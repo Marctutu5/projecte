@@ -31,9 +31,10 @@
             <select id="category" name="category" required>
                 <!-- Iterem a través de totes les categories disponibles -->
                 {% for category in categories %}
-                    <option value="{{ category[0] }}">{{ category[1] }}</option>
+                    <option value="{{ category.id }}">{{ category.name }}</option>
                 {% endfor %}
             </select><br><br>
+
 
             <!-- Imatge del producte -->
             <label for="image">Imagen:</label>

@@ -1,101 +1,96 @@
-from flask import Flask, render_template, g, request, redirect, url_for, flash
-import sqlite3
-import os
+from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import DateTime
 from werkzeug.utils import secure_filename
+import os
 
 app = Flask(__name__)
 
 # Configuración
-DATABASE = 'db/database.db'
 UPLOAD_FOLDER = 'static/images'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 SECRET_KEY = "muydificil"
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.secret_key = SECRET_KEY
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.abspath('db/database.db')
 
-# Funciones
+db = SQLAlchemy(app)
 
+# Modelos
+class products(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String)
+    description = db.Column(db.String)
+    photo = db.Column(db.String)
+    price = db.Column(db.Float)
+    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
+    created = db.Column(DateTime, default=db.func.current_timestamp())
+    updated = db.Column(DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
+
+class categories(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, unique=True)
+    slug = db.Column(db.String, unique=True)
+    products = db.relationship('products', backref='category', lazy=True)
+
+# Funciones auxiliares
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def get_db():
-    db = getattr(g, '_database', None)
-    if db is None:
-        db = g._database = sqlite3.connect(DATABASE)
-    return db
-
-def close_db(e=None):
-    db = g.pop('_database', None)
-    if db is not None:
-        db.close()
-
-def get_categories(cur):
-    cur.execute("SELECT * FROM categories")
-    return cur.fetchall()
-
-@app.teardown_appcontext
-def teardown_db(exception):
-    close_db(exception)
-
 # Rutas
-
 @app.route('/products/list/', methods=['GET', 'POST'])
 def mostrar_productos():
-    cur = get_db().cursor()
     category_slug = request.args.get('category') if request.method == 'GET' else None
 
     if category_slug:
-        cur.execute("SELECT * FROM products JOIN categories ON products.category_id = categories.id WHERE categories.slug = ?", (category_slug,))
+        productos = products.query.join(categories).filter(categories.slug == category_slug).all()
     else:
-        cur.execute("SELECT * FROM products")
-        
-    productos = cur.fetchall()
-    categories = get_categories(cur)
-    cur.close()
+        productos = products.query.all()
+    category_list = categories.query.all()
 
-    return render_template("/products/list.html", productos=productos, categories=categories)
+    return render_template("/products/list.html", productos=productos, categories=category_list)
+
 
 def validate_product(updating=False):
     errors = []
 
     title = request.form.get('title')
     if not title:
-        errors.append("El títol no pot estar buit.")
+        errors.append("El título no puede estar vacío.")
     elif len(title) > 255:
-        errors.append("El títol no pot superar els 255 caràcters.")
+        errors.append("El título no puede superar los 255 caracteres.")
 
     description = request.form.get('description')
     if not description:
-        errors.append("La descripció no pot estar buit.")
+        errors.append("La descripción no puede estar vacía.")
 
     try:
         price = float(request.form.get('price'))
         if not price:
-            errors.append("El preu no pot estar buit.")
+            errors.append("El precio no puede estar vacío.")
     except ValueError:
-        errors.append("El preu ha de ser un número.")
+        errors.append("El precio debe ser un número.")
 
     image = request.files.get('image')
     if not updating:
         if not image or not image.filename:
-            errors.append("La foto no pot estar buit.")
+            errors.append("La foto no puede estar vacía.")
         elif image and image.content_length > (2 * 1024 * 1024):
-            errors.append("El fitxer no pot superar els 2MB.")
+            errors.append("El archivo no puede superar los 2MB.")
     else:
         if image and image.content_length > (2 * 1024 * 1024):
-            errors.append("El fitxer no pot superar els 2MB.")
+            errors.append("El archivo no puede superar los 2MB.")
 
     category_id = request.form.get('category')
     if not category_id:
-        errors.append("Cal seleccionar una categoria.")
+        errors.append("Debes seleccionar una categoría.")
 
     return errors
 
 @app.route('/products/create/', methods=['GET', 'POST'])
 def create_product():
-    cur = get_db().cursor()
-    categories = get_categories(cur)
+    category_list = categories.query.all()
     
     if request.method == 'POST':
         errors = validate_product()
@@ -103,7 +98,7 @@ def create_product():
         if errors:
             for error in errors:
                 flash(error, 'danger')
-            return render_template('products/create.html', categories=categories)
+            return render_template('products/create.html', categories=category_list)
         
         title = request.form.get('title')
         description = request.form.get('description')
@@ -117,22 +112,27 @@ def create_product():
             image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
         try:
-            cur.execute("""
-                INSERT INTO products (title, description, price, category_id, photo, created, updated)
-                VALUES (?, ?, ?, ?, ?, DATETIME('now'), DATETIME('now'))
-            """, (title, description, price, category_id, filename))
-            get_db().commit()
-            flash("Producte creat amb èxit", "success")
+            product = products(
+                title=title,
+                description=description,
+                price=price,
+                category_id=category_id,
+                photo=filename
+            )
+            db.session.add(product)
+            db.session.commit()
+            flash("Producto creado con éxito", "success")
             return redirect(url_for('mostrar_productos'))
-        except sqlite3.Error as e:
-            flash(f"Error al crear el producte: {e}", "danger")
-            return render_template('products/create.html', categories=categories)
+        except Exception as e:
+            flash(f"Error al crear el producto: {e}", "danger")
+            return render_template('products/create.html', categories=category_list)
 
-    return render_template('products/create.html', categories=categories)
+    return render_template('products/create.html', categories=category_list)
 
 @app.route('/products/update/<int:product_id>/', methods=['GET', 'POST'])
 def update_product(product_id):
-    cur = get_db().cursor()
+    product = products.query.get(product_id)
+    category_list = categories.query.all()
 
     if request.method == 'POST':
         errors = validate_product(updating=True)
@@ -140,9 +140,7 @@ def update_product(product_id):
         if errors:
             for error in errors:
                 flash(error, 'danger')
-            product = cur.execute("SELECT * FROM products WHERE id=?", (product_id,)).fetchone()
-            categories = get_categories(cur)
-            return render_template('products/update.html', product=product, categories=categories)
+            return render_template('products/update.html', product=product, categories=category_list)
         
         title = request.form.get('title')
         description = request.form.get('description')
@@ -151,7 +149,7 @@ def update_product(product_id):
 
         image = request.files.get('image')
         if not image or not image.filename:
-            image_path = cur.execute("SELECT photo FROM products WHERE id=?", (product_id,)).fetchone()[0]
+            image_path = product.photo
         else:
             if allowed_file(image.filename):
                 filename = secure_filename(image.filename)
@@ -159,38 +157,32 @@ def update_product(product_id):
                 image_path = filename
 
         try:
-            cur.execute("""
-                UPDATE products
-                SET title=?, description=?, price=?, category_id=?, photo=?, updated=DATETIME('now')
-                WHERE id=?
-            """, (title, description, price, category_id, image_path, product_id))
-            get_db().commit()
-            flash("Producte actualitzat amb èxit", "success")
+            product.title = title
+            product.description = description
+            product.price = price
+            product.category_id = category_id
+            product.photo = image_path
+            db.session.commit()
+            flash("Producto actualizado con éxito", "success")
             return redirect(url_for('mostrar_productos'))
-        except sqlite3.Error as e:
-            flash(f"Error al actualitzar el producte: {e}", "danger")
-            product = cur.execute("SELECT * FROM products WHERE id=?", (product_id,)).fetchone()
-            categories = get_categories(cur)
-            return render_template('products/update.html', product=product, categories=categories)
+        except Exception as e:
+            flash(f"Error al actualizar el producto: {e}", "danger")
+            return render_template('products/update.html', product=product, categories=category_list)
 
-    product = cur.execute("SELECT * FROM products WHERE id=?", (product_id,)).fetchone()
-    categories = get_categories(cur)
-    return render_template('products/update.html', product=product, categories=categories)
+    return render_template('products/update.html', product=product, categories=category_list)
+
 
 @app.route('/products/delete/<int:product_id>', methods=['GET', 'POST'])
 def delete_product(product_id):
-    cur = get_db().cursor()
-
     try:
-        cur.execute("DELETE FROM products WHERE id=?", (product_id,))
-        get_db().commit()
-        flash("Producte esborrat amb èxit", "success")
-    except sqlite3.Error as e:
-        flash(f"Error al esborrar el producte: {e}", "danger")
+        product = products.query.get(product_id)
+        db.session.delete(product)
+        db.session.commit()
+        flash("Producto eliminado con éxito", "success")
+    except Exception as e:
+        flash(f"Error al eliminar el producto: {e}", "danger")
         
     return redirect(url_for('mostrar_productos'))
 
 if __name__ == '__main__':
     app.run()
-
-
