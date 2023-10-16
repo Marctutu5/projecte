@@ -1,45 +1,18 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import DateTime
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from werkzeug.utils import secure_filename
 import os
+from models import db, products, categories
 
-app = Flask(__name__)
+routes_main = Blueprint('routes_main', __name__)
 
-# Configuración
 UPLOAD_FOLDER = 'static/images'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-SECRET_KEY = "muydificil"
 
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.secret_key = SECRET_KEY
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.abspath('db/database.db')
-
-db = SQLAlchemy(app)
-
-# Modelos
-class products(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String)
-    description = db.Column(db.String)
-    photo = db.Column(db.String)
-    price = db.Column(db.Float)
-    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
-    created = db.Column(DateTime, default=db.func.current_timestamp())
-    updated = db.Column(DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
-
-class categories(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, unique=True)
-    slug = db.Column(db.String, unique=True)
-    products = db.relationship('products', backref='category', lazy=True)
-
-# Funciones auxiliares
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Rutas
-@app.route('/products/list/', methods=['GET', 'POST'])
+@routes_main.route('/products/list/', methods=['GET', 'POST'])
 def mostrar_productos():
     category_slug = request.args.get('category') if request.method == 'GET' else None
 
@@ -88,7 +61,7 @@ def validate_product(updating=False):
 
     return errors
 
-@app.route('/products/create/', methods=['GET', 'POST'])
+@routes_main.route('/products/create/', methods=['GET', 'POST'])
 def create_product():
     category_list = categories.query.all()
     
@@ -109,7 +82,7 @@ def create_product():
         filename = None
         if allowed_file(image.filename):
             filename = secure_filename(image.filename)
-            image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            image.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
 
         try:
             product = products(
@@ -122,14 +95,14 @@ def create_product():
             db.session.add(product)
             db.session.commit()
             flash("Producto creado con éxito", "success")
-            return redirect(url_for('mostrar_productos'))
+            return redirect(url_for('routes_main.mostrar_productos'))
         except Exception as e:
             flash(f"Error al crear el producto: {e}", "danger")
             return render_template('products/create.html', categories=category_list)
 
     return render_template('products/create.html', categories=category_list)
 
-@app.route('/products/update/<int:product_id>/', methods=['GET', 'POST'])
+@routes_main.route('/products/update/<int:product_id>/', methods=['GET', 'POST'])
 def update_product(product_id):
     product = products.query.get(product_id)
     category_list = categories.query.all()
@@ -153,7 +126,7 @@ def update_product(product_id):
         else:
             if allowed_file(image.filename):
                 filename = secure_filename(image.filename)
-                image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                image.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
                 image_path = filename
 
         try:
@@ -164,7 +137,7 @@ def update_product(product_id):
             product.photo = image_path
             db.session.commit()
             flash("Producto actualizado con éxito", "success")
-            return redirect(url_for('mostrar_productos'))
+            return redirect(url_for('routes_main.mostrar_productos'))
         except Exception as e:
             flash(f"Error al actualizar el producto: {e}", "danger")
             return render_template('products/update.html', product=product, categories=category_list)
@@ -172,7 +145,7 @@ def update_product(product_id):
     return render_template('products/update.html', product=product, categories=category_list)
 
 
-@app.route('/products/delete/<int:product_id>', methods=['GET', 'POST'])
+@routes_main.route('/products/delete/<int:product_id>', methods=['GET', 'POST'])
 def delete_product(product_id):
     try:
         product = products.query.get(product_id)
@@ -182,7 +155,4 @@ def delete_product(product_id):
     except Exception as e:
         flash(f"Error al eliminar el producto: {e}", "danger")
         
-    return redirect(url_for('mostrar_productos'))
-
-if __name__ == '__main__':
-    app.run()
+    return redirect(url_for('routes_main.mostrar_productos'))

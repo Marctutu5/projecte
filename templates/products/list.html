@@ -69,8 +69,8 @@
                     <td>{{ product.price }}</td>
                     <!-- Enlaces para actualizar o eliminar el producto -->
                     <td>
-                        <a href="{{ url_for('update_product', product_id=product.id) }}">Actualizar</a> |
-                        <a href="{{ url_for('delete_product', product_id=product.id) }}" onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?');">Eliminar</a>
+                        <a href="{{ url_for('routes_main.update_product', product_id=product.id) }}">Actualizar</a> |
+                        <a href="{{ url_for('routes_main.delete_product', product_id=product.id) }}" onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?');">Eliminar</a>
                     </td>
                 </tr>
                 {% endfor %}
