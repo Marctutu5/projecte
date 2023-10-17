@@ -1,35 +1,38 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 
 <head>
-    <!-- Título de la página -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Productos</title>
-    <!-- Estilos CSS -->
     <link rel="stylesheet" type="text/css" href="/static/style/style_list.css">
 </head>
 
 <body>
-    <!-- Contenedor principal del listado de productos -->
     <div class="container">
         <h1>Lista de Productos</h1>
 
         <!-- Menú para filtrar los productos por categoría -->
+        <!-- Menú para filtrar los productos por categoría -->
         <div class="filter-menu">
-            <form action="/products/list/" method="GET">
-                <!-- Selector de categorías -->
-                <select name="category">
-                    <option value="">Todos</option>
-                    <!-- Itera a través de todas las categorías disponibles -->
-                    {% for category in categories %}
-                    <option value="{{ category.slug }}" {% if category.slug == request.args.get('category') %} selected {% endif %}>{{ category.name }}</option>
-                    {% endfor %}
+            <!-- Asegúrate de que el formulario envíe la categoría seleccionada como parte de la solicitud GET -->
+            <form action="{{ url_for('routes_main.mostrar_productos') }}" method="GET">
+                {{ form.hidden_tag() }}
+                <label for="category">Filtrar por categoría:</label>
+                <!-- Utiliza el campo 'category' como un menú desplegable -->
+                <select class="form-control" id="category" name="category">
+                    <!-- Agregar la opción "TODOS" -->
+                    <option value="TODOS">TODOS</option>
+                    <!-- Agregar la opción "Roba" -->
+                    <option value="electronica">Electrònica</option>
+                    <option value="roba">Roba</option>
+                    <option value="joguines">Joguines</option>
                 </select>
-                <!-- Botón para aplicar el filtro de categoría -->
-                <input type="submit" value="Filtrar">
+                <input type="submit" value="Filtrar" class="btn btn-primary">
             </form>
         </div>
 
-        <!-- Mostrar los mensajes si los hay -->
+        <!-- Mensajes flash -->
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         <ul>
@@ -40,10 +43,9 @@
         {% endif %}
         {% endwith %}
 
-        <!-- Tabla que muestra el listado de productos -->
-        <table>
+        <!-- Tabla de productos -->
+        <table class="table">
             <thead>
-                <!-- Cabeceras de la tabla -->
                 <tr>
                     <th>ID</th>
                     <th>Nombre</th>
@@ -54,31 +56,28 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- Itera a través de todos los productos y muéstralos en la tabla -->
                 {% for product in productos %}
                 <tr>
                     <td>{{ product.id }}</td>
                     <td>{{ product.title }}</td>
                     <td>{{ product.description }}</td>
-                    <!-- Mostrar la imagen del producto si está disponible -->
                     {% if product.photo %}
                     <td><img src="{{ url_for('static', filename='images/' + product.photo) }}" alt="Imagen de {{ product.title }}" width="100"></td>
                     {% else %}
                     <td>No hay imagen</td>
                     {% endif %}
                     <td>{{ product.price }}</td>
-                    <!-- Enlaces para actualizar o eliminar el producto -->
                     <td>
-                        <a href="{{ url_for('routes_main.update_product', product_id=product.id) }}">Actualizar</a> |
-                        <a href="{{ url_for('routes_main.delete_product', product_id=product.id) }}" onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?');">Eliminar</a>
+                        <a href="{{ url_for('routes_main.update_product', product_id=product.id) }}" class="btn btn-primary">Actualizar</a> |
+                        <a href="{{ url_for('routes_main.delete_product', product_id=product.id) }}" class="btn btn-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?');">Eliminar</a>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
 
-        <!-- Enlace para crear un nuevo producto -->
-        <a href="/products/create/" class="btn-create">Crear</a>
+        <!-- Botón para crear un nuevo producto -->
+        <a href="{{ url_for('routes_main.create_product') }}" class="btn btn-success">Crear Nuevo Producto</a>
     </div>
 </body>
 

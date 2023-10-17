@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Producto</title>
+    <link rel="stylesheet" type="text/css" href="/static/style/style_create.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Crear Nuevo Producto</h1>
+
+        <!-- Formulario para crear un nuevo producto -->
+        <form action="/products/create/" method="post" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+
+            <!-- Título -->
+            <label for="{{ form.title.id }}">{{ form.title.label.text }}</label><br>
+            {{ form.title(id=form.title.id, required=True) }}<br><br>
+
+            <!-- Descripción -->
+            <label for="{{ form.description.id }}">{{ form.description.label.text }}</label><br>
+            {{ form.description(id=form.description.id, required=True) }}<br><br>
+
+            <!-- Precio -->
+            <label for="{{ form.price.id }}">{{ form.price.label.text }}</label><br>
+            {{ form.price(id=form.price.id, required=True, step="0.01", min="0.01") }}<br><br>
+
+            <!-- Categoría -->
+            <label for="{{ form.category.id }}">{{ form.category.label.text }}</label><br>
+            {{ form.category(id=form.category.id, required=True) }}<br><br>
+
+            <!-- Imagen -->
+            <label for="{{ form.image.id }}">{{ form.image.label.text }}</label><br>
+            {{ form.image(id=form.image.id, accept="image/*") }}<br><br>
+
+            <!-- Botón de enviar -->
+            <input type="submit" value="Crear Producto">
+        </form>
+
+        <!-- Mensajes flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <ul>
+            {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+    </div>
+</body>
+
+</html>
+
+
+
