@@ -113,3 +113,15 @@ def delete_product(product_id):
         flash(f"Error al eliminar el producto: {e}", "danger")
         
     return redirect(url_for('routes_main.mostrar_productos'))
+
+
+@routes_main.route('/products/read/<int:product_id>', methods=['GET'])
+def read_product(product_id):
+    product = products.query.get(product_id)
+
+    if not product:
+        flash("Producto no encontrado", "danger")
+        return redirect(url_for('routes_main.mostrar_productos'))
+
+    return render_template('products/read.html', product=product)
+

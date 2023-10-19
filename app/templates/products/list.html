@@ -68,13 +68,15 @@
                     {% endif %}
                     <td>{{ product.price }}</td>
                     <td>
-                        <a href="{{ url_for('routes_main.update_product', product_id=product.id) }}" class="btn btn-primary">Actualizar</a> |
+                        <a href="{{ url_for('routes_main.update_product', product_id=product.id) }}" class="btn btn-primary">Actualizar</a>
                         <a href="{{ url_for('routes_main.delete_product', product_id=product.id) }}" class="btn btn-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?');">Eliminar</a>
+                        <a href="{{ url_for('routes_main.read_product', product_id=product.id) }}" class="btn btn-info">Detalles</a>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+
 
         <!-- Botón para crear un nuevo producto -->
         <a href="{{ url_for('routes_main.create_product') }}" class="btn btn-success">Crear Nuevo Producto</a>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalles del Producto</title>
+    <link rel="stylesheet" type="text/css" href="/static/style/style_read.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Detalles del Producto</h1>
+
+        <!-- Mostrar detalles del producto -->
+        <div>
+            <p><strong>ID:</strong> {{ product.id }}</p>
+            <p><strong>Nombre:</strong> {{ product.title }}</p>
+            <p><strong>Descripción:</strong> {{ product.description }}</p>
+            {% if product.photo %}
+            <p><strong>Imagen:</strong> <img src="{{ url_for('static', filename='images/' + product.photo) }}" alt="Imagen de {{ product.title }}" width="200"></p>
+            {% else %}
+            <p>No hay imagen</p>
+            {% endif %}
+            <p><strong>Precio:</strong> {{ product.price }}</p>
+            <p><strong>Categoría:</strong> {{ product.category.name }}</p>
+        </div>
+
+        <!-- Volver a la lista de productos -->
+        <a href="{{ url_for('routes_main.mostrar_productos') }}" class="btn btn-primary">Volver a la Lista</a>
+    </div>
+</body>
+
+</html>
