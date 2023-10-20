@@ -13,7 +13,6 @@
         <h1>Lista de Productos</h1>
 
         <!-- Menú para filtrar los productos por categoría -->
-        <!-- Menú para filtrar los productos por categoría -->
         <div class="filter-menu">
             <!-- Asegúrate de que el formulario envíe la categoría seleccionada como parte de la solicitud GET -->
             <form action="{{ url_for('routes_main.mostrar_productos') }}" method="GET">
@@ -21,9 +20,7 @@
                 <label for="category">Filtrar por categoría:</label>
                 <!-- Utiliza el campo 'category' como un menú desplegable -->
                 <select class="form-control" id="category" name="category">
-                    <!-- Agregar la opción "TODOS" -->
                     <option value="TODOS">TODOS</option>
-                    <!-- Agregar la opción "Roba" -->
                     <option value="electronica">Electrònica</option>
                     <option value="roba">Roba</option>
                     <option value="joguines">Joguines</option>
@@ -77,8 +74,6 @@
             </tbody>
         </table>
 
-
-        <!-- Botón para crear un nuevo producto -->
         <a href="{{ url_for('routes_main.create_product') }}" class="btn btn-success">Crear Nuevo Producto</a>
     </div>
 </body>

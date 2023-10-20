@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Actualizar Producto</title>
-    <link rel="stylesheet" type="text/css" href="/static/style/style_create.css">
+    <link rel="stylesheet" type="text/css" href="/static/style/style_update.css">
 </head>
 
 <body>
@@ -18,31 +18,26 @@
             <fieldset>
                 <legend>Información del producto</legend>
 
-                <!-- Título -->
                 <div class="form-group">
                     {{ form.title.label(class="form-label") }}
                     {{ form.title(class="form-control") }}
                 </div>
 
-                <!-- Descripción -->
                 <div class="form-group">
                     {{ form.description.label(class="form-label") }}
                     {{ form.description(class="form-control") }}
                 </div>
 
-                <!-- Precio -->
                 <div class="form-group">
                     {{ form.price.label(class="form-label") }}
                     {{ form.price(class="form-control") }}
                 </div>
 
-                <!-- Categoría -->
                 <div class="form-group">
                     {{ form.category.label(class="form-label") }}
                     {{ form.category(class="form-control") }}
                 </div>
 
-                <!-- Imagen -->
                 <div class="form-group">
                     {{ form.image.label(class="form-label") }}
                     {{ form.image(class="form-control") }}
@@ -52,7 +47,6 @@
                 <img src="/static/images/{{ product.photo }}" alt="Imagen del producto" width="100">
                 {% endif %}
                 
-                <!-- Botones -->
                 <input type="submit" value="Guardar Cambios" class="btn btn-primary">
                 <a href="{{ url_for('routes_main.mostrar_productos') }}" class="btn btn-secondary">Volver a la Lista</a>
             </fieldset>

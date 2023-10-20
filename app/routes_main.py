@@ -18,22 +18,17 @@ def mostrar_productos():
 
     if category_slug:
         if category_slug == 'TODOS':
-            # Si se selecciona "TODOS", muestra todos los productos
             productos = products.query.all()
         else:
-            # Filtra los productos por la categoría seleccionada
             productos = products.query.join(categories).filter(categories.slug == category_slug).all()
     else:
-        # Si no se proporciona una categoría, muestra todos los productos
         productos = products.query.all()
 
     category_list = categories.query.all()
 
-    # Crear una instancia del formulario aquí y pasarlo al contexto
     form = ProductForm()
     form.category.choices = [(cat.id, cat.name) for cat in categories.query.all()]
 
-    # Configurar el valor predeterminado del campo 'category' si se proporciona una categoría actual
     if category_slug:
         form.category.default = category_slug
         form.process()
